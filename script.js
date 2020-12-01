@@ -14,6 +14,10 @@ function updateCanvasSize() {
 }
 
 function updateParticles() {
+  function getBoundValue(num) {
+    return Math.max(Math.min(num, 1), 0);
+  }
+
   let doRender = forceRender;
   if (forceRender) {
     forceRender = false;
@@ -25,34 +29,30 @@ function updateParticles() {
         const xDiff = particle.x * canvas.width - mouseX;
         const yDiff = particle.y * canvas.height - mouseY;
         const distance = Math.sqrt((xDiff ** 2) + (yDiff ** 2));
-  
+
         if (distance < 150) {
           const multiple = 10 / (Math.PI * (particle.size ** 2));
           particle.xVel += xDiff * multiple;
           particle.yVel += yDiff * multiple;
-  
+
           doRender = true;
         }
       });
     }
 
     if (!doRender) {
-      doRender = particles.some((particle) => [ 'x', 'y' ].some((x) => Math.abs(particle[x + 'Vel']) >= 0.01));
+      doRender = particles.some((particle) => [ 'x', 'y' ].some((x) => Math.abs(particle[`${x}Vel`]) >= 0.01));
     }
   }
 
   if (doRender) {
-    function getBoundValue(num) {
-      return Math.max(Math.min(num, 1), 0);
-    }
-
     particles.forEach((particle) => {
       if (particle.sizeScale !== 1) {
         particle.sizeScale = Math.min(particle.sizeScale * 1.14, 1);
       }
 
       [ [ 'x', canvas.width ], [ 'y', canvas.height ] ].forEach(([ propName, dimension ]) => {
-        const velPropName = propName + 'Vel';
+        const velPropName = `${propName}Vel`;
         particle[propName] += particle[velPropName] / dimension;
 
         particle[velPropName] *= 0.94;
@@ -121,7 +121,7 @@ function reset() {
       yVel : getRandomVelocity(),
       size : 1 / (1 + (Math.E ** (getRandomDirection() * 3))) * 6 + 2,
       sizeScale : 0.5,
-      color : '#' + colors[Math.floor(colors.length * Math.random())],
+      color : `#${colors[Math.floor(colors.length * Math.random())]}`,
     });
   }
 
