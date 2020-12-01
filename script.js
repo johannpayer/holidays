@@ -165,12 +165,12 @@ window.addEventListener('resize', () => {
   reset();
 });
 
-window.addEventListener('mousemove', (event) => {
+document.addEventListener('mousemove', (event) => {
   mouseX = event.clientX;
   mouseY = event.clientY;
 });
 
-window.addEventListener('keydown', (event) => {
+document.addEventListener('keydown', (event) => {
   function wrapIndex(index, length) {
     return ((index % length) + length) % length;
   }
