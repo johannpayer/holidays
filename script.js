@@ -13,36 +13,37 @@ function updateCanvasSize() {
   context.globalAlpha = 0.76;
 }
 
+let lastMousePosition;
 function updateParticles() {
-  function getBoundValue(num) {
-    return Math.max(Math.min(num, 1), 0);
-  }
-
   let doRender = forceRender;
   if (forceRender) {
     forceRender = false;
   }
 
+  if (document.hasFocus() && lastMousePosition) {
+    const mouseSpeed = Math.sqrt(((mouseX - lastMousePosition.x) / canvas.width) ** 2 + ((mouseY - lastMousePosition.y) / canvas.height) ** 2);
+    particles.forEach((particle) => {
+      const xDiff = particle.x * canvas.width - mouseX;
+      const yDiff = particle.y * canvas.height - mouseY;
+      const distance = Math.sqrt((xDiff ** 2) + (yDiff ** 2));
+
+      if (distance < 150) {
+        if (mouseSpeed === NaN) console.log(lastMousePosition);
+        const multiple = 10000 / (Math.PI * (particle.size ** 2)) * 1 / distance * mouseSpeed;
+        particle.xVel += xDiff * multiple;
+        particle.yVel += yDiff * multiple;
+
+        doRender = true;
+      }
+    });
+  }
+
   if (!doRender) {
-    if (document.hasFocus()) {
-      particles.forEach((particle) => {
-        const xDiff = particle.x * canvas.width - mouseX;
-        const yDiff = particle.y * canvas.height - mouseY;
-        const distance = Math.sqrt((xDiff ** 2) + (yDiff ** 2));
+    doRender = particles.some((particle) => [ 'x', 'y' ].some((x) => Math.abs(particle[`${x}Vel`]) >= 0.01));
+  }
 
-        if (distance < 150) {
-          const multiple = 10 / (Math.PI * (particle.size ** 2));
-          particle.xVel += xDiff * multiple;
-          particle.yVel += yDiff * multiple;
-
-          doRender = true;
-        }
-      });
-    }
-
-    if (!doRender) {
-      doRender = particles.some((particle) => [ 'x', 'y' ].some((x) => Math.abs(particle[`${x}Vel`]) >= 0.01));
-    }
+  function getBoundValue(num) {
+    return Math.max(Math.min(num, 1), 0);
   }
 
   if (doRender) {
@@ -74,6 +75,7 @@ function updateParticles() {
     });
   }
 
+  lastMousePosition = { x : mouseX, y : mouseY };
   requestAnimationFrame(updateParticles);
 }
 
