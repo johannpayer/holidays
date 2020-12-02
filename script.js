@@ -7,12 +7,6 @@ let mouseX;
 let mouseY;
 let forceRender = true;
 
-function updateCanvasSize() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-  context.globalAlpha = 0.76;
-}
-
 let lastMousePosition;
 let isHoldingRightMouseButton = false;
 function updateParticles() {
@@ -23,29 +17,30 @@ function updateParticles() {
 
   if (document.hasFocus() && lastMousePosition) {
     const mouseSpeed = Math.min(Math.sqrt(((mouseX - lastMousePosition.x) / canvas.width) ** 2 + ((mouseY - lastMousePosition.y) / canvas.height) ** 2), 0.02);
-    particles.forEach((particle) => {
-      const xDiff = particle.x * canvas.width - mouseX;
-      const yDiff = particle.y * canvas.height - mouseY;
-      const distance = Math.sqrt((xDiff ** 2) + (yDiff ** 2));
-
-      const distanceThreshold = isHoldingRightMouseButton ? 300 : 150;
-      if (distance < distanceThreshold) {
-        const circleRadius = (Math.PI * (particle.size ** 2));
-        let multiplier = (isHoldingRightMouseButton ? -0.0002 : 50 / circleRadius * mouseSpeed) * (distanceThreshold - distance);
-        if (isHoldingRightMouseButton) {
-          const speed = Math.sqrt((xDiff * multiplier) ** 2 + (yDiff * multiplier) ** 2);
-          const minSpeed = 2;
-          if (speed < minSpeed) {
-            multiplier *= minSpeed / speed;
+    if (mouseSpeed) {
+      particles.forEach((particle) => {
+        const xDiff = particle.x * canvas.width - mouseX;
+        const yDiff = particle.y * canvas.height - mouseY;
+        const distance = Math.sqrt((xDiff ** 2) + (yDiff ** 2));
+  
+        const distanceThreshold = isHoldingRightMouseButton ? 300 : 150;
+        if (distance < distanceThreshold) {
+          let multiplier = (isHoldingRightMouseButton ? -0.0002 : 50 / (Math.PI * (particle.size ** 2)) * mouseSpeed) * (distanceThreshold - distance);
+          if (isHoldingRightMouseButton) {
+            const speed = Math.sqrt((xDiff * multiplier) ** 2 + (yDiff * multiplier) ** 2);
+            const minSpeed = 2;
+            if (speed < minSpeed) {
+              multiplier *= minSpeed / speed;
+            }
           }
+  
+          particle.xVel += xDiff * multiplier;
+          particle.yVel += yDiff * multiplier;
+  
+          doRender = true;
         }
-
-        particle.xVel += xDiff * multiplier;
-        particle.yVel += yDiff * multiplier;
-
-        doRender = true;
-      }
-    });
+      });
+    }
   }
 
   if (!doRender) {
@@ -66,13 +61,13 @@ function updateParticles() {
         const velPropName = `${propName}Vel`;
         particle[propName] += particle[velPropName] / dimension;
 
-        particle[velPropName] *= 0.94;
-
-        const value = particle[propName];
-        if (value < 0 || value > 1) {
-          particle[propName] = getBoundValue(value);
+        const coordinate = particle[propName];
+        if (coordinate < 0 || coordinate > 1) {
+          particle[propName] = getBoundValue(coordinate);
           particle[velPropName] *= -1;
         }
+
+        particle[velPropName] *= 0.94;
       });
     });
 
@@ -80,7 +75,7 @@ function updateParticles() {
     particles.forEach((x) => {
       context.fillStyle = x.color;
       context.beginPath();
-      context.arc(x.x * canvas.width, x.y * canvas.height, x.size * x.sizeScale, 2 * Math.PI, false);
+      context.arc(x.x * canvas.width, x.y * canvas.height, x.size * x.sizeScale, Math.PI * 2, false);
       context.fill();
     });
   }
@@ -108,6 +103,12 @@ function updateNearestHoliday(index) {
 
   nearestHoliday = index === null ? holidays.map(addDateProp).sort((x1, x2) => x1.date.valueOf() - x2.date.valueOf())[0] : addDateProp(holidays[index]);
   holidayIndex = index ?? holidays.findIndex((x) => x.name === nearestHoliday.name);
+}
+
+function updateCanvasSize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  context.globalAlpha = 0.76;
 }
 
 function reset() {
