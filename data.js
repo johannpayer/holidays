@@ -44,12 +44,11 @@ var holidays = [
 
     return [ month, l + 28 - (Math.floor(month / 4) * 31) ];
   }, [
-    '5374a0',
-    'a3c3e9',
-    'f1f0f4',
-    '9c6140',
-    'dc9c4d',
-    '789429',
+    'F4A4DF',
+    'C099FF',
+    '96E5F8',
+    'CDF683',
+    'FFE085',
   ] ],
   [ `mother's day`, null, null, (year) => {
     const month = 5;
@@ -68,7 +67,7 @@ var holidays = [
     const day = (new Date(year, month - 1, 1)).getDay();
     return [ month, 15 + (7 - day) ];
   }, [
-    'Caac3e',
+    'caac3e',
     '4f4c47',
     '7ac3bc',
     'e6e7a3',
