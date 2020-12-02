@@ -13,36 +13,47 @@ function updateCanvasSize() {
   context.globalAlpha = 0.76;
 }
 
+let lastMousePosition;
+let isHoldingRightMouseButton = false;
 function updateParticles() {
-  function getBoundValue(num) {
-    return Math.max(Math.min(num, 1), 0);
-  }
-
   let doRender = forceRender;
   if (forceRender) {
     forceRender = false;
   }
 
-  if (!doRender) {
-    if (document.hasFocus()) {
-      particles.forEach((particle) => {
-        const xDiff = particle.x * canvas.width - mouseX;
-        const yDiff = particle.y * canvas.height - mouseY;
-        const distance = Math.sqrt((xDiff ** 2) + (yDiff ** 2));
+  if (document.hasFocus() && lastMousePosition) {
+    const mouseSpeed = Math.min(Math.sqrt(((mouseX - lastMousePosition.x) / canvas.width) ** 2 + ((mouseY - lastMousePosition.y) / canvas.height) ** 2), 0.02);
+    particles.forEach((particle) => {
+      const xDiff = particle.x * canvas.width - mouseX;
+      const yDiff = particle.y * canvas.height - mouseY;
+      const distance = Math.sqrt((xDiff ** 2) + (yDiff ** 2));
 
-        if (distance < 150) {
-          const multiple = 10 / (Math.PI * (particle.size ** 2));
-          particle.xVel += xDiff * multiple;
-          particle.yVel += yDiff * multiple;
-
-          doRender = true;
+      const distanceThreshold = isHoldingRightMouseButton ? 300 : 150;
+      if (distance < distanceThreshold) {
+        const circleRadius = (Math.PI * (particle.size ** 2));
+        let multiplier = (isHoldingRightMouseButton ? -0.00005 : 50 / circleRadius * mouseSpeed) * (distanceThreshold - distance);
+        if (isHoldingRightMouseButton) {
+          const speed = Math.sqrt((xDiff * multiplier) ** 2 + (yDiff * multiplier) ** 2);
+          const minSpeed = 4;
+          if (speed < minSpeed) {
+            multiplier *= minSpeed / speed;
+          }
         }
-      });
-    }
 
-    if (!doRender) {
-      doRender = particles.some((particle) => [ 'x', 'y' ].some((x) => Math.abs(particle[`${x}Vel`]) >= 0.01));
-    }
+        particle.xVel += xDiff * multiplier;
+        particle.yVel += yDiff * multiplier;
+
+        doRender = true;
+      }
+    });
+  }
+
+  if (!doRender) {
+    doRender = particles.some((particle) => [ 'x', 'y' ].some((x) => Math.abs(particle[`${x}Vel`]) >= 0.01));
+  }
+
+  function getBoundValue(num) {
+    return Math.max(Math.min(num, 1), 0);
   }
 
   if (doRender) {
@@ -74,6 +85,7 @@ function updateParticles() {
     });
   }
 
+  lastMousePosition = { x : mouseX, y : mouseY };
   requestAnimationFrame(updateParticles);
 }
 
@@ -165,10 +177,28 @@ window.addEventListener('resize', () => {
   reset();
 });
 
+function isRightMouseButton(event) {
+  return event.button === 2;
+}
+
+document.addEventListener('mousedown', (event) => {
+  if (isRightMouseButton(event)) {
+    isHoldingRightMouseButton = true;
+  }
+});
+
+document.addEventListener('mouseup', (event) => {
+  if (isRightMouseButton(event)) {
+    isHoldingRightMouseButton = false;
+  }
+});
+
 document.addEventListener('mousemove', (event) => {
   mouseX = event.clientX;
   mouseY = event.clientY;
 });
+
+document.addEventListener('contextmenu', event => event.preventDefault());
 
 document.addEventListener('keydown', (event) => {
   function wrapIndex(index, length) {
@@ -188,3 +218,5 @@ document.addEventListener('keydown', (event) => {
     reset();
   }
 });
+
+window.addEventListener('blur', () => { lastMousePosition = null; });
