@@ -95,11 +95,11 @@ var holidays = [
     'b5ad15',
   ] ],
   [ 'christmas', 12, 25, null, [
-    'de6960',
-    'f4c87c',
-    '6da06e',
-    '39775a',
-    'f3f3eb',
-    'b18e73',
+    '348228',
+    '469a47',
+    'daf7ff',
+    'fffafa',
+    'eb2029',
+    'd70816',
   ] ],
 ].map((x) => ({ name : x[0], month : x[1], day : x[2], dateFunc : x[3], colors : x[4] }));
