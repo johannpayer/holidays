@@ -51,7 +51,7 @@ function updateParticles() {
     return Math.max(Math.min(num, 1), 0);
   }
 
-  if (doRender) {
+  if (doRender && document.visibilityState === 'visible') {
     particles.forEach((particle) => {
       if (particle.sizeScale !== 1) {
         particle.sizeScale = Math.min(particle.sizeScale * 1.14, 1);
