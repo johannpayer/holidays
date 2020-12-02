@@ -31,10 +31,10 @@ function updateParticles() {
       const distanceThreshold = isHoldingRightMouseButton ? 300 : 150;
       if (distance < distanceThreshold) {
         const circleRadius = (Math.PI * (particle.size ** 2));
-        let multiplier = (isHoldingRightMouseButton ? -0.00005 : 50 / circleRadius * mouseSpeed) * (distanceThreshold - distance);
+        let multiplier = (isHoldingRightMouseButton ? -0.0002 : 50 / circleRadius * mouseSpeed) * (distanceThreshold - distance);
         if (isHoldingRightMouseButton) {
           const speed = Math.sqrt((xDiff * multiplier) ** 2 + (yDiff * multiplier) ** 2);
-          const minSpeed = 4;
+          const minSpeed = 2;
           if (speed < minSpeed) {
             multiplier *= minSpeed / speed;
           }

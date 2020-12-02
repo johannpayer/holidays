@@ -75,11 +75,10 @@ var holidays = [
     'eb7140',
   ] ],
   [ 'halloween', 10, 31, null, [
-    'e98f4e',
-    '3c4349',
-    'f5e9e2',
-    '836b5a',
-    '584137',
+    '512888',
+    '7349ac',
+    'eb6123',
+    'da4200',
   ] ],
   [ 'veterans day', 11, 11, null, usaColors ],
   [ 'thanksgiving', null, null, (year) => {
