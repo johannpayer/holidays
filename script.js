@@ -17,7 +17,7 @@ function updateParticles() {
 
   if (document.hasFocus() && lastMousePosition) {
     const mouseSpeed = Math.min(Math.sqrt(((mouseX - lastMousePosition.x) / canvas.width) ** 2 + ((mouseY - lastMousePosition.y) / canvas.height) ** 2), 0.02);
-    if (mouseSpeed) {
+    if (isHoldingRightMouseButton || mouseSpeed) {
       particles.forEach((particle) => {
         const xDiff = particle.x * canvas.width - mouseX;
         const yDiff = particle.y * canvas.height - mouseY;
