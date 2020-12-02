@@ -112,7 +112,7 @@ function reset() {
   }
 
   particles = [];
-  for (let i = 0; i < 4000; i++) {
+  for (let i = 0; i < 3000; i++) {
     const { colors } = nearestHoliday;
     particles.push({
       x : getRandomCoordinate(),
