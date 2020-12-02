@@ -14,6 +14,7 @@ function updateCanvasSize() {
 }
 
 let lastMousePosition;
+let isHoldingRightMouseButton = false;
 function updateParticles() {
   let doRender = forceRender;
   if (forceRender) {
@@ -21,17 +22,26 @@ function updateParticles() {
   }
 
   if (document.hasFocus() && lastMousePosition) {
-    const mouseSpeed = Math.sqrt(((mouseX - lastMousePosition.x) / canvas.width) ** 2 + ((mouseY - lastMousePosition.y) / canvas.height) ** 2);
+    const mouseSpeed = Math.min(Math.sqrt(((mouseX - lastMousePosition.x) / canvas.width) ** 2 + ((mouseY - lastMousePosition.y) / canvas.height) ** 2), 0.02);
     particles.forEach((particle) => {
       const xDiff = particle.x * canvas.width - mouseX;
       const yDiff = particle.y * canvas.height - mouseY;
       const distance = Math.sqrt((xDiff ** 2) + (yDiff ** 2));
 
-      if (distance < 150) {
-        if (mouseSpeed === NaN) console.log(lastMousePosition);
-        const multiple = 10000 / (Math.PI * (particle.size ** 2)) * 1 / distance * mouseSpeed;
-        particle.xVel += xDiff * multiple;
-        particle.yVel += yDiff * multiple;
+      const distanceThreshold = isHoldingRightMouseButton ? 300 : 150;
+      if (distance < distanceThreshold) {
+        const circleRadius = (Math.PI * (particle.size ** 2));
+        let multiplier = (isHoldingRightMouseButton ? -0.00005 : 50 / circleRadius * mouseSpeed) * (distanceThreshold - distance);
+        if (isHoldingRightMouseButton) {
+          const speed = Math.sqrt((xDiff * multiplier) ** 2 + (yDiff * multiplier) ** 2);
+          const minSpeed = 4;
+          if (speed < minSpeed) {
+            multiplier *= minSpeed / speed;
+          }
+        }
+
+        particle.xVel += xDiff * multiplier;
+        particle.yVel += yDiff * multiplier;
 
         doRender = true;
       }
@@ -167,10 +177,28 @@ window.addEventListener('resize', () => {
   reset();
 });
 
+function isRightMouseButton(event) {
+  return event.button === 2;
+}
+
+document.addEventListener('mousedown', (event) => {
+  if (isRightMouseButton(event)) {
+    isHoldingRightMouseButton = true;
+  }
+});
+
+document.addEventListener('mouseup', (event) => {
+  if (isRightMouseButton(event)) {
+    isHoldingRightMouseButton = false;
+  }
+});
+
 document.addEventListener('mousemove', (event) => {
   mouseX = event.clientX;
   mouseY = event.clientY;
 });
+
+document.addEventListener('contextmenu', event => event.preventDefault());
 
 document.addEventListener('keydown', (event) => {
   function wrapIndex(index, length) {
@@ -190,3 +218,5 @@ document.addEventListener('keydown', (event) => {
     reset();
   }
 });
+
+window.addEventListener('blur', () => { lastMousePosition = null; });
