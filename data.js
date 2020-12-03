@@ -7,7 +7,7 @@ const usaColors = [
   '2578B2',
 ];
 var holidays = [
-  [ 'new years', 1, 1, null, [
+  [ `new year's day`, 1, 1, null, [
     '03172f',
     '062844',
     '093657',
