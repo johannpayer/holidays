@@ -1,5 +1,9 @@
 let context;
+let canvasWidth;
+let canvasHeight;
 let particles;
+let particleSizeScale;
+
 let nearestHoliday;
 let holidayIndex;
 
@@ -16,11 +20,11 @@ function updateParticles() {
   }
 
   if (document.hasFocus() && lastMousePosition) {
-    const mouseSpeed = Math.min(Math.sqrt(((mouseX - lastMousePosition.x) / canvas.width) ** 2 + ((mouseY - lastMousePosition.y) / canvas.height) ** 2), 0.02);
+    const mouseSpeed = Math.min(Math.sqrt(((mouseX - lastMousePosition.x) / canvasWidth) ** 2 + ((mouseY - lastMousePosition.y) / canvasHeight) ** 2), 0.02);
     if (isHoldingRightMouseButton || mouseSpeed) {
-      particles.forEach((particle) => {
-        const xDiff = particle.x * canvas.width - mouseX;
-        const yDiff = particle.y * canvas.height - mouseY;
+      particles.forEach((x) => x.forEach((particle) => {
+        const xDiff = particle.x * canvasWidth - mouseX;
+        const yDiff = particle.y * canvasHeight - mouseY;
         const distance = Math.sqrt((xDiff ** 2) + (yDiff ** 2));
   
         const distanceThreshold = isHoldingRightMouseButton ? 300 : 150;
@@ -39,12 +43,12 @@ function updateParticles() {
   
           doRender = true;
         }
-      });
+      }));
     }
   }
 
   if (!doRender) {
-    doRender = particles.some((particle) => [ 'x', 'y' ].some((x) => Math.abs(particle[`${x}Vel`]) >= 0.01));
+    doRender = particles.some((x) => x.some((particle) => [ 'x', 'y' ].some((dimension) => Math.abs(particle[`${dimension}Vel`]) >= 0.01)));
   }
 
   function getBoundValue(num) {
@@ -52,12 +56,12 @@ function updateParticles() {
   }
 
   if (doRender && document.visibilityState === 'visible') {
-    particles.forEach((particle) => {
-      if (particle.sizeScale !== 1) {
-        particle.sizeScale = Math.min(particle.sizeScale * 1.14, 1);
-      }
+    if (particleSizeScale !== 1) {
+      particleSizeScale = Math.min(particleSizeScale * 1.14, 1);
+    }
 
-      [ [ 'x', canvas.width ], [ 'y', canvas.height ] ].forEach(([ propName, dimension ]) => {
+    particles.forEach((x) => x.forEach((particle) => {
+      [ [ 'x', canvasWidth ], [ 'y', canvasHeight ] ].forEach(([ propName, dimension ]) => {
         const velPropName = `${propName}Vel`;
         particle[propName] += particle[velPropName] / dimension;
 
@@ -69,13 +73,19 @@ function updateParticles() {
 
         particle[velPropName] *= 0.94;
       });
-    });
+    }));
 
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    particles.forEach((x) => {
-      context.fillStyle = x.color;
+    context.clearRect(0, 0, canvasWidth, canvasHeight);
+    particles.forEach((x, i) => {
+      context.fillStyle = `#${nearestHoliday.colors[i]}`;
+
       context.beginPath();
-      context.arc(x.x * canvas.width, x.y * canvas.height, x.size * x.sizeScale, Math.PI * 2, false);
+      x.forEach((particle) => {
+        const pos = [ particle.x * canvasWidth, particle.y * canvasHeight ];
+        context.moveTo(...pos);
+        context.arc(...pos, particle.size * particleSizeScale, Math.PI * 2, false);
+      });
+
       context.fill();
     });
   }
@@ -106,8 +116,10 @@ function updateNearestHoliday(index) {
 }
 
 function updateCanvasSize() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+  canvasWidth = window.innerWidth;
+  canvasHeight = window.innerHeight;
+  canvas.width = canvasWidth;
+  canvas.height = canvasHeight;
   context.globalAlpha = 0.76;
 }
 
@@ -125,18 +137,21 @@ function reset() {
   }
 
   particles = [];
+  for (let i = 0; i < nearestHoliday.colors.length; i++) {
+    particles.push([]);
+  }
+
   for (let i = 0; i < 3000; i++) {
-    const { colors } = nearestHoliday;
-    particles.push({
+    particles[Math.floor(particles.length * Math.random())].push({
       x : getRandomCoordinate(),
       y : getRandomCoordinate(),
       xVel : getRandomVelocity(),
       yVel : getRandomVelocity(),
       size : 1 / (1 + (Math.E ** (getRandomDirection() * 3))) * 6 + 2,
-      sizeScale : 0.5,
-      color : `#${colors[Math.floor(colors.length * Math.random())]}`,
     });
   }
+
+  particleSizeScale = 0.5;
 
   updateText();
   forceRender = true;
