@@ -24,7 +24,7 @@ function updateParticles() {
     if (isHoldingRightMouseButton || mouseSpeed) {
       const distanceThreshold = isHoldingRightMouseButton ? 300 : 150;
 
-      particles.forEach((x) => x.forEach((particle) => {
+      particles.forEach((particle) => {
         const xDiff = particle.x * canvasWidth - mouseX;
         const yDiff = particle.y * canvasHeight - mouseY;
         const distance = Math.sqrt((xDiff ** 2) + (yDiff ** 2));
@@ -43,12 +43,12 @@ function updateParticles() {
   
           doRender = true;
         }
-      }));
+      });
     }
   }
 
   if (!doRender) {
-    doRender = particles.some((x) => x.some((particle) => [ 'x', 'y' ].some((dimension) => Math.abs(particle[`${dimension}Vel`]) >= 0.01)));
+    doRender = particles.some((particle) => [ 'x', 'y' ].some((dimension) => Math.abs(particle[`${dimension}Vel`]) >= 0.01));
   }
 
   function isWithinBounds(coordiante) {
@@ -66,33 +66,28 @@ function updateParticles() {
 
     const decelerationMultiplier = 0.94;
     context.clearRect(0, 0, canvasWidth, canvasHeight);
-    particles.forEach((x, i) => {
-      context.fillStyle = `#${nearestHoliday.colors[i]}`;
+    particles.forEach((particle) => {
+      context.fillStyle = particle.color;
 
+      // I know this is awfully verbose, but sacrifices must be made for performance
+      particle.x += particle.xVel / canvasWidth;
+      particle.y += particle.yVel / canvasHeight;
+
+      if (!isWithinBounds(particle.x)) {
+        particle.x = getBoundValue(particle.x);
+        particle.xVel *= -1;
+      }
+
+      if (!isWithinBounds(particle.y)) {
+        particle.y = getBoundValue(particle.y);
+        particle.yVel *= -1;
+      }
+
+      particle.xVel *= decelerationMultiplier;
+      particle.yVel *= decelerationMultiplier;
+      
       context.beginPath();
-      x.forEach((particle) => {
-        // I know this is awfully verbose, but sacrifices must be made for performance
-        particle.x += particle.xVel / canvasWidth;
-        particle.y += particle.yVel / canvasHeight;
-
-        if (!isWithinBounds(particle.x)) {
-          particle.x = getBoundValue(particle.x);
-          particle.xVel *= -1;
-        }
-
-        if (!isWithinBounds(particle.y)) {
-          particle.y = getBoundValue(particle.y);
-          particle.yVel *= -1;
-        }
-
-        particle.xVel *= decelerationMultiplier;
-        particle.yVel *= decelerationMultiplier;
-
-        const pos = [ particle.x * canvasWidth, particle.y * canvasHeight ];
-        context.moveTo(...pos);
-        context.arc(...pos, particle.size * particleSizeScale, Math.PI * 2, false);
-      });
-
+      context.arc(particle.x * canvasWidth, particle.y * canvasHeight, particle.size * particleSizeScale, Math.PI * 2, false);
       context.fill();
     });
   }
@@ -144,17 +139,15 @@ function reset() {
   }
 
   particles = [];
-  for (let i = 0; i < nearestHoliday.colors.length; i++) {
-    particles.push([]);
-  }
-
+  const { colors } = nearestHoliday;
   for (let i = 0; i < 3000; i++) {
-    particles[Math.floor(particles.length * Math.random())].push({
+    particles.push({
       x : getRandomCoordinate(),
       y : getRandomCoordinate(),
       xVel : getRandomVelocity(),
       yVel : getRandomVelocity(),
       size : 1 / (1 + (Math.E ** (getRandomDirection() * 3))) * 6 + 2,
+      color : `#${colors[Math.floor(colors.length * Math.random())]}`,
     });
   }
 
