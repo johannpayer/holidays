@@ -22,12 +22,12 @@ function updateParticles() {
   if (document.hasFocus() && lastMousePosition) {
     const mouseSpeed = Math.min(Math.sqrt(((mouseX - lastMousePosition.x) / canvasWidth) ** 2 + ((mouseY - lastMousePosition.y) / canvasHeight) ** 2), 0.02);
     if (isHoldingRightMouseButton || mouseSpeed) {
+      const distanceThreshold = isHoldingRightMouseButton ? 300 : 150;
+
       particles.forEach((x) => x.forEach((particle) => {
         const xDiff = particle.x * canvasWidth - mouseX;
         const yDiff = particle.y * canvasHeight - mouseY;
         const distance = Math.sqrt((xDiff ** 2) + (yDiff ** 2));
-  
-        const distanceThreshold = isHoldingRightMouseButton ? 300 : 150;
         if (distance < distanceThreshold) {
           let multiplier = (isHoldingRightMouseButton ? -0.0002 : 50 / (Math.PI * (particle.size ** 2)) * mouseSpeed) * (distanceThreshold - distance);
           if (isHoldingRightMouseButton) {
@@ -51,6 +51,10 @@ function updateParticles() {
     doRender = particles.some((x) => x.some((particle) => [ 'x', 'y' ].some((dimension) => Math.abs(particle[`${dimension}Vel`]) >= 0.01)));
   }
 
+  function isWithinBounds(coordiante) {
+    return coordiante >= 0 && coordiante <= 1;
+  }
+
   function getBoundValue(num) {
     return Math.max(Math.min(num, 1), 0);
   }
@@ -60,27 +64,30 @@ function updateParticles() {
       particleSizeScale = Math.min(particleSizeScale * 1.14, 1);
     }
 
-    particles.forEach((x) => x.forEach((particle) => {
-      [ [ 'x', canvasWidth ], [ 'y', canvasHeight ] ].forEach(([ propName, dimension ]) => {
-        const velPropName = `${propName}Vel`;
-        particle[propName] += particle[velPropName] / dimension;
-
-        const coordinate = particle[propName];
-        if (coordinate < 0 || coordinate > 1) {
-          particle[propName] = getBoundValue(coordinate);
-          particle[velPropName] *= -1;
-        }
-
-        particle[velPropName] *= 0.94;
-      });
-    }));
-
+    const decelerationMultiplier = 0.94;
     context.clearRect(0, 0, canvasWidth, canvasHeight);
     particles.forEach((x, i) => {
       context.fillStyle = `#${nearestHoliday.colors[i]}`;
 
       context.beginPath();
       x.forEach((particle) => {
+        // I know this is awfully verbose, but sacrifices must be made for performance
+        particle.x += particle.xVel / canvasWidth;
+        particle.y += particle.yVel / canvasHeight;
+
+        if (!isWithinBounds(particle.x)) {
+          particle.x = getBoundValue(particle.x);
+          particle.xVel *= -1;
+        }
+
+        if (!isWithinBounds(particle.y)) {
+          particle.y = getBoundValue(particle.y);
+          particle.yVel *= -1;
+        }
+
+        particle.xVel *= decelerationMultiplier;
+        particle.yVel *= decelerationMultiplier;
+
         const pos = [ particle.x * canvasWidth, particle.y * canvasHeight ];
         context.moveTo(...pos);
         context.arc(...pos, particle.size * particleSizeScale, Math.PI * 2, false);
