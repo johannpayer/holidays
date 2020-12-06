@@ -59,7 +59,7 @@ function updateParticles() {
     return Math.max(Math.min(num, 1), 0);
   }
 
-  if (doRender && document.visibilityState === 'visible') {
+  if (doRender) {
     if (particleSizeScale !== 1) {
       particleSizeScale = Math.min(particleSizeScale * 1.14, 1);
     }
