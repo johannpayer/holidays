@@ -69,7 +69,7 @@ function updateParticles() {
     particles.forEach((particle) => {
       context.fillStyle = particle.color;
 
-      // I know this is awfully verbose, but sacrifices must be made for performance
+      // I know this is awfully verbose, but it has to be done to improve performance
       particle.x += particle.xVel / canvasWidth;
       particle.y += particle.yVel / canvasHeight;
 
