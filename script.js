@@ -1,4 +1,5 @@
 let context;
+let contextColorIndex;
 let canvasWidth;
 let canvasHeight;
 let particles;
@@ -13,6 +14,7 @@ let forceRender = true;
 
 let lastMousePosition;
 let isHoldingRightMouseButton = false;
+
 function updateParticles() {
   let doRender = forceRender;
   if (forceRender) {
@@ -67,7 +69,10 @@ function updateParticles() {
     const decelerationMultiplier = 0.94;
     context.clearRect(0, 0, canvasWidth, canvasHeight);
     particles.forEach((particle) => {
-      context.fillStyle = particle.color;
+      if (contextColorIndex !== particle.colorIndex) {
+        context.fillStyle = `#${nearestHoliday.colors[particle.colorIndex]}`;
+        contextColorIndex = particle.colorIndex;
+      }
 
       // I know this is awfully verbose, but it has to be done to improve performance
       particle.x += particle.xVel / canvasWidth;
@@ -126,6 +131,8 @@ function updateCanvasSize() {
 }
 
 function reset() {
+  contextColorIndex = null;
+
   function getRandomDirection() {
     return (Math.random() * 2) - 1;
   }
@@ -139,7 +146,6 @@ function reset() {
   }
 
   particles = [];
-  const { colors } = nearestHoliday;
   for (let i = 0; i < 3000; i++) {
     particles.push({
       x : getRandomCoordinate(),
@@ -147,7 +153,7 @@ function reset() {
       xVel : getRandomVelocity(),
       yVel : getRandomVelocity(),
       size : 1 / (1 + (Math.E ** (getRandomDirection() * 3))) * 6 + 2,
-      color : `#${colors[Math.floor(colors.length * Math.random())]}`,
+      colorIndex : Math.floor(nearestHoliday.colors.length * Math.random()),
     });
   }
 
