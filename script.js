@@ -65,8 +65,7 @@ function updateParticles() {
     if (particleSizeScale !== 1) {
       particleSizeScale = Math.min(particleSizeScale * 1.14, 1);
     }
-
-    const decelerationMultiplier = 0.94;
+    
     context.clearRect(0, 0, canvasWidth, canvasHeight);
     particles.forEach((particle) => {
       if (contextColorIndex !== particle.colorIndex) {
@@ -88,6 +87,7 @@ function updateParticles() {
         particle.yVel *= -1;
       }
 
+      const decelerationMultiplier = 0.94;
       particle.xVel *= decelerationMultiplier;
       particle.yVel *= decelerationMultiplier;
       
