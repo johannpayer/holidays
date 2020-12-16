@@ -9,15 +9,15 @@ let holidayIndex;
 
 let mouseX;
 let mouseY;
-let forceRender = true;
+let doForceRender = true;
 
 let lastMousePosition;
 let isHoldingRightMouseButton = false;
 
 function updateParticles() {
-  let doRender = forceRender;
-  if (forceRender) {
-    forceRender = false;
+  let doRender = doForceRender;
+  if (doForceRender) {
+    doForceRender = false;
   }
 
   if (document.hasFocus() && lastMousePosition) {
@@ -162,7 +162,7 @@ function reset() {
   particleSizeScale = 0.5;
 
   updateText();
-  forceRender = true;
+  doForceRender = true;
 }
 
 window.addEventListener('load', () => {
