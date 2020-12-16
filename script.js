@@ -1,4 +1,5 @@
 let context;
+let contextColorIndex;
 let canvasWidth;
 let canvasHeight;
 let particles;
@@ -65,12 +66,7 @@ function updateParticles() {
       particleSizeScale = Math.min(particleSizeScale * 1.14, 1);
     }
     
-    context.globalAlpha = 0.4;
-    context.fillStyle = 'black';
-    context.fillRect(0, 0, canvasWidth, canvasHeight);
-
-    context.globalAlpha = 0.76;
-    let contextColorIndex;
+    context.clearRect(0, 0, canvasWidth, canvasHeight);
     particles.forEach((particle) => {
       if (contextColorIndex !== particle.colorIndex) {
         context.fillStyle = `#${nearestHoliday.colors[particle.colorIndex]}`;
@@ -135,6 +131,8 @@ function updateCanvasSize() {
 }
 
 function reset() {
+  contextColorIndex = null;
+
   function getRandomDirection() {
     return (Math.random() * 2) - 1;
   }
