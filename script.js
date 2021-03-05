@@ -22,27 +22,39 @@ function updateParticles() {
   }
 
   if (document.hasFocus() && lastMousePosition) {
-    const mouseSpeed = Math.min(Math.sqrt(((mouseX - lastMousePosition.x) / canvasWidth) ** 2 + ((mouseY - lastMousePosition.y) / canvasHeight) ** 2), 0.02);
+    const mouseSpeed = Math.min(
+      Math.sqrt(
+        ((mouseX - lastMousePosition.x) / canvasWidth) ** 2 +
+          ((mouseY - lastMousePosition.y) / canvasHeight) ** 2
+      ),
+      0.02
+    );
     if (isHoldingRightMouseButton || mouseSpeed) {
       const distanceThreshold = isHoldingRightMouseButton ? 300 : 150;
 
       particles.forEach((particle) => {
         const xDiff = particle.x * canvasWidth - mouseX;
         const yDiff = particle.y * canvasHeight - mouseY;
-        const distance = Math.sqrt((xDiff ** 2) + (yDiff ** 2));
+        const distance = Math.sqrt(xDiff ** 2 + yDiff ** 2);
         if (distance < distanceThreshold) {
-          let multiplier = (isHoldingRightMouseButton ? -0.0002 : 50 / (Math.PI * (particle.size ** 2)) * mouseSpeed) * (distanceThreshold - distance);
+          let multiplier =
+            (isHoldingRightMouseButton
+              ? -0.0002
+              : (50 / (Math.PI * particle.size ** 2)) * mouseSpeed) *
+            (distanceThreshold - distance);
           if (isHoldingRightMouseButton) {
-            const speed = Math.sqrt((xDiff * multiplier) ** 2 + (yDiff * multiplier) ** 2);
+            const speed = Math.sqrt(
+              (xDiff * multiplier) ** 2 + (yDiff * multiplier) ** 2
+            );
             const minSpeed = 2;
             if (speed < minSpeed) {
               multiplier *= minSpeed / speed;
             }
           }
-  
+
           particle.xVel += xDiff * multiplier;
           particle.yVel += yDiff * multiplier;
-  
+
           doRender = true;
         }
       });
@@ -50,7 +62,11 @@ function updateParticles() {
   }
 
   if (!doRender) {
-    doRender = particles.some((particle) => [ 'x', 'y' ].some((dimension) => Math.abs(particle[`${dimension}Vel`]) >= 0.01));
+    doRender = particles.some((particle) =>
+      ['x', 'y'].some(
+        (dimension) => Math.abs(particle[`${dimension}Vel`]) >= 0.01
+      )
+    );
   }
 
   function isWithinBounds(coordiante) {
@@ -65,7 +81,7 @@ function updateParticles() {
     if (particleSizeScale !== 1) {
       particleSizeScale = Math.min(particleSizeScale * 1.14, 1);
     }
-    
+
     context.clearRect(0, 0, canvasWidth, canvasHeight);
     particles.forEach((particle) => {
       if (contextColorIndex !== particle.colorIndex) {
@@ -90,27 +106,35 @@ function updateParticles() {
       const decelerationMultiplier = 0.94;
       particle.xVel *= decelerationMultiplier;
       particle.yVel *= decelerationMultiplier;
-      
+
       context.beginPath();
-      context.arc(particle.x * canvasWidth, particle.y * canvasHeight, particle.size * particleSizeScale, Math.PI * 2, false);
+      context.arc(
+        particle.x * canvasWidth,
+        particle.y * canvasHeight,
+        particle.size * particleSizeScale,
+        Math.PI * 2,
+        false
+      );
       context.fill();
     });
   }
 
-  lastMousePosition = { x : mouseX, y : mouseY };
+  lastMousePosition = { x: mouseX, y: mouseY };
   requestAnimationFrame(updateParticles);
 }
 
 function updateText() {
-  countdown.innerHTML = `${nearestHoliday.name}<br>${dayjs().to(nearestHoliday.date)}`;
+  countdown.innerHTML = `${nearestHoliday.name}<br>${dayjs().to(
+    nearestHoliday.date
+  )}`;
 }
 
 function updateNearestHoliday(index) {
-  const year = (new Date()).getFullYear();
+  const year = new Date().getFullYear();
   const now = Date.now();
 
   function addDateProp(x) {
-    let date = dayjs([ year, x.month, x.dateFunc ? x.dateFunc(year) : x.day ]);
+    let date = dayjs([year, x.month, x.dateFunc ? x.dateFunc(year) : x.day]);
     if (date.valueOf() < now) {
       date = date.set('year', year + 1);
     }
@@ -118,8 +142,14 @@ function updateNearestHoliday(index) {
     return { ...x, date };
   }
 
-  nearestHoliday = index === null ? holidays.map(addDateProp).sort((x1, x2) => x1.date.valueOf() - x2.date.valueOf())[0] : addDateProp(holidays[index]);
-  holidayIndex = index ?? holidays.findIndex((x) => x.name === nearestHoliday.name);
+  nearestHoliday =
+    index === null
+      ? holidays
+          .map(addDateProp)
+          .sort((x1, x2) => x1.date.valueOf() - x2.date.valueOf())[0]
+      : addDateProp(holidays[index]);
+  holidayIndex =
+    index ?? holidays.findIndex((x) => x.name === nearestHoliday.name);
 }
 
 function updateCanvasSize() {
@@ -134,11 +164,11 @@ function reset() {
   contextColorIndex = null;
 
   function getRandomDirection() {
-    return (Math.random() * 2) - 1;
+    return Math.random() * 2 - 1;
   }
 
   function getRandomCoordinate() {
-    return 0.5 + (getRandomDirection()) * 0.1;
+    return 0.5 + getRandomDirection() * 0.1;
   }
 
   function getRandomVelocity() {
@@ -148,12 +178,12 @@ function reset() {
   particles = [];
   for (let i = 0; i < 3000; i++) {
     particles.push({
-      x : getRandomCoordinate(),
-      y : getRandomCoordinate(),
-      xVel : getRandomVelocity(),
-      yVel : getRandomVelocity(),
-      size : 1 / (1 + (Math.E ** (getRandomDirection() * 3))) * 6 + 2,
-      colorIndex : Math.floor(nearestHoliday.colors.length * Math.random()),
+      x: getRandomCoordinate(),
+      y: getRandomCoordinate(),
+      xVel: getRandomVelocity(),
+      yVel: getRandomVelocity(),
+      size: (1 / (1 + Math.E ** (getRandomDirection() * 3))) * 6 + 2,
+      colorIndex: Math.floor(nearestHoliday.colors.length * Math.random()),
     });
   }
 
@@ -167,10 +197,14 @@ window.addEventListener('load', () => {
   dayjs.extend(dayjs_plugin_relativeTime);
 
   const seperator = '?holiday=';
-  const param = decodeURI(window.location.href).split('&').find((x) => x.includes(seperator));
+  const param = decodeURI(window.location.href)
+    .split('&')
+    .find((x) => x.includes(seperator));
   let index = null;
   if (param) {
-    const temp = holidays.findIndex((x) => x.name === param.split(seperator)[1]);
+    const temp = holidays.findIndex(
+      (x) => x.name === param.split(seperator)[1]
+    );
     if (temp !== -1) {
       index = temp;
     }
@@ -220,7 +254,7 @@ document.addEventListener('mousemove', (event) => {
   mouseY = event.clientY;
 });
 
-document.addEventListener('contextmenu', event => event.preventDefault());
+document.addEventListener('contextmenu', (event) => event.preventDefault());
 
 document.addEventListener('keydown', (event) => {
   function wrapIndex(index, length) {
@@ -241,4 +275,6 @@ document.addEventListener('keydown', (event) => {
   }
 });
 
-window.addEventListener('blur', () => { lastMousePosition = null; });
+window.addEventListener('blur', () => {
+  lastMousePosition = null;
+});
