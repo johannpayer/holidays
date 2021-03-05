@@ -4,7 +4,9 @@ body {
   background-color: black;
 }
 
-html, body, canvas {
+html,
+body,
+canvas {
   width: 100%;
   height: 100%;
   margin: 0;
@@ -15,7 +17,7 @@ html, body, canvas {
 #countdown {
   font-family: 'Manrope';
   text-align: center;
-  color : white;
+  color: white;
   position: absolute;
   left: 50%;
   top: 50%;
