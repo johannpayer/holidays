@@ -15,115 +15,141 @@ let doForceRender = true;
 let lastMousePosition;
 let isHoldingRightMouseButton = false;
 
-function updateParticles() {
+function isWithinBounds(coordiante) {
+  return coordiante >= 0 && coordiante <= 1;
+}
+
+function getBoundValue(num) {
+  return Math.max(Math.min(num, 1), 0);
+}
+
+function tickMouseInteraction() {
+  if (!document.hasFocus() || !lastMousePosition) {
+    return { doRender: false };
+  }
+
+  const mouseSpeed = Math.min(
+    Math.sqrt(
+      ((mouseX - lastMousePosition.x) / canvasWidth) ** 2 +
+        ((mouseY - lastMousePosition.y) / canvasHeight) ** 2
+    ),
+    0.02
+  );
+  if (!isHoldingRightMouseButton && !mouseSpeed) {
+    return { doRender: false };
+  }
+
+  const distanceThreshold = isHoldingRightMouseButton ? 300 : 150;
+
+  particles.forEach((particle) => {
+    const xDiff = particle.x * canvasWidth - mouseX;
+    const yDiff = particle.y * canvasHeight - mouseY;
+    const distance = Math.sqrt(xDiff ** 2 + yDiff ** 2);
+    if (distance < distanceThreshold) {
+      let multiplier =
+        (isHoldingRightMouseButton
+          ? -0.25
+          : 16 * mouseSpeed * (distanceThreshold - distance)) /
+        particle.size ** 2;
+      if (isHoldingRightMouseButton) {
+        const speed = Math.sqrt(
+          (xDiff * multiplier) ** 2 + (yDiff * multiplier) ** 2
+        );
+        const minSpeed = 2;
+        if (speed < minSpeed) {
+          multiplier *= minSpeed / speed;
+        }
+      }
+
+      particle.xVel += xDiff * multiplier;
+      particle.yVel += yDiff * multiplier;
+
+      return { doRender: true };
+    }
+  });
+
+  return { doRender: false };
+}
+
+function tickParticleDimensionMovement(
+  particle,
+  dimension,
+  canvasDimensionSize
+) {
+  const velocityPropertyName = `${dimension}Vel`;
+  particle[dimension] += particle[velocityPropertyName] / canvasDimensionSize;
+
+  if (!isWithinBounds(particle[dimension])) {
+    particle[dimension] = getBoundValue(particle[dimension]);
+    particle[velocityPropertyName] *= -1;
+  }
+
+  const DECELERATION_MULTIPLIER = 0.94;
+  particle[velocityPropertyName] *= DECELERATION_MULTIPLIER;
+}
+
+function isParticleMovement() {
+  const VELOCITY_THRESHOLD = 0.01;
+  return Boolean(
+    particles.some((particle) =>
+      ['x', 'y'].some(
+        (x) => Math.abs(particle[`${x}Vel`]) >= VELOCITY_THRESHOLD
+      )
+    )
+  );
+}
+
+function renderParticles() {
+  if (particleSizeScale !== 1) {
+    particleSizeScale = Math.min(particleSizeScale * 1.14, 1);
+  }
+
+  context.clearRect(0, 0, canvasWidth, canvasHeight);
+  particles.forEach((particle) => {
+    if (contextColorIndex !== particle.colorIndex) {
+      context.fillStyle = `#${nearestHoliday.colors[particle.colorIndex]}`;
+      contextColorIndex = particle.colorIndex;
+    }
+
+    tickParticleDimensionMovement(particle, 'x', canvasWidth);
+    tickParticleDimensionMovement(particle, 'y', canvasHeight);
+
+    context.beginPath();
+    context.arc(
+      particle.x * canvasWidth,
+      particle.y * canvasHeight,
+      particle.size * particleSizeScale,
+      Math.PI * 2,
+      false
+    );
+    context.fill();
+  });
+}
+
+function tick() {
   let doRender = doForceRender;
   if (doForceRender) {
     doForceRender = false;
   }
 
-  if (document.hasFocus() && lastMousePosition) {
-    const mouseSpeed = Math.min(
-      Math.sqrt(
-        ((mouseX - lastMousePosition.x) / canvasWidth) ** 2 +
-          ((mouseY - lastMousePosition.y) / canvasHeight) ** 2
-      ),
-      0.02
-    );
-    if (isHoldingRightMouseButton || mouseSpeed) {
-      const distanceThreshold = isHoldingRightMouseButton ? 300 : 150;
-
-      particles.forEach((particle) => {
-        const xDiff = particle.x * canvasWidth - mouseX;
-        const yDiff = particle.y * canvasHeight - mouseY;
-        const distance = Math.sqrt(xDiff ** 2 + yDiff ** 2);
-        if (distance < distanceThreshold) {
-          let multiplier =
-            (isHoldingRightMouseButton
-              ? -0.25
-              : 16 * mouseSpeed * (distanceThreshold - distance)) /
-            particle.size ** 2;
-          if (isHoldingRightMouseButton) {
-            const speed = Math.sqrt(
-              (xDiff * multiplier) ** 2 + (yDiff * multiplier) ** 2
-            );
-            const minSpeed = 2;
-            if (speed < minSpeed) {
-              multiplier *= minSpeed / speed;
-            }
-          }
-
-          particle.xVel += xDiff * multiplier;
-          particle.yVel += yDiff * multiplier;
-
-          doRender = true;
-        }
-      });
-    }
+  const mouseInteractionResult = tickMouseInteraction();
+  if (mouseInteractionResult.doRender) {
+    doRender = true;
   }
 
   if (!doRender) {
-    doRender = particles.some((particle) =>
-      ['x', 'y'].some(
-        (dimension) => Math.abs(particle[`${dimension}Vel`]) >= 0.01
-      )
-    );
-  }
-
-  function isWithinBounds(coordiante) {
-    return coordiante >= 0 && coordiante <= 1;
-  }
-
-  function getBoundValue(num) {
-    return Math.max(Math.min(num, 1), 0);
+    doRender = isParticleMovement();
   }
 
   if (doRender) {
-    if (particleSizeScale !== 1) {
-      particleSizeScale = Math.min(particleSizeScale * 1.14, 1);
-    }
-
-    context.clearRect(0, 0, canvasWidth, canvasHeight);
-    particles.forEach((particle) => {
-      if (contextColorIndex !== particle.colorIndex) {
-        context.fillStyle = `#${nearestHoliday.colors[particle.colorIndex]}`;
-        contextColorIndex = particle.colorIndex;
-      }
-
-      // I know this is awfully verbose, but it has to be done to improve performance
-      particle.x += particle.xVel / canvasWidth;
-      particle.y += particle.yVel / canvasHeight;
-
-      if (!isWithinBounds(particle.x)) {
-        particle.x = getBoundValue(particle.x);
-        particle.xVel *= -1;
-      }
-
-      if (!isWithinBounds(particle.y)) {
-        particle.y = getBoundValue(particle.y);
-        particle.yVel *= -1;
-      }
-
-      const decelerationMultiplier = 0.94;
-      particle.xVel *= decelerationMultiplier;
-      particle.yVel *= decelerationMultiplier;
-
-      context.beginPath();
-      context.arc(
-        particle.x * canvasWidth,
-        particle.y * canvasHeight,
-        particle.size * particleSizeScale,
-        Math.PI * 2,
-        false
-      );
-      context.fill();
-    });
+    renderParticles();
   }
 
   lastMousePosition = {
     x: mouseX,
     y: mouseY,
   };
-  requestAnimationFrame(updateParticles);
+  requestAnimationFrame(tick);
 }
 
 function updateText() {
@@ -229,7 +255,7 @@ window.addEventListener('load', () => {
   updateCanvasSize();
 
   reset();
-  requestAnimationFrame(updateParticles);
+  requestAnimationFrame(tick);
   setInterval(() => {
     if (nearestHoliday.date.valueOf() < Date.now()) {
       updateNearestHoliday(null);
