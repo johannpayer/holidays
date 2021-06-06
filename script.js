@@ -48,9 +48,8 @@ function tickMouseInteraction() {
     const distance = Math.sqrt(xDiff ** 2 + yDiff ** 2);
     if (distance < distanceThreshold) {
       let multiplier =
-        (isHoldingRightMouseButton
-          ? -0.25
-          : 16 * mouseSpeed * (distanceThreshold - distance)) /
+        ((isHoldingRightMouseButton ? -0.006 : 16 * mouseSpeed) *
+          (distanceThreshold - distance)) /
         particle.size ** 2;
       if (isHoldingRightMouseButton) {
         const speed = Math.sqrt(
