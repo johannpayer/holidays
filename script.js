@@ -13,7 +13,7 @@ let mouseY;
 let doForceRender = true;
 
 let lastMousePosition;
-let isHoldingRightMouseButton = false;
+let isRightMouseButtonHeld = false;
 
 function isWithinBounds(coordiante) {
   return coordiante >= 0 && coordiante <= 1;
@@ -35,11 +35,11 @@ function tickMouseInteraction() {
     ),
     0.02
   );
-  if (!isHoldingRightMouseButton && !mouseSpeed) {
+  if (!isRightMouseButtonHeld && !mouseSpeed) {
     return { doRender: false };
   }
 
-  const distanceThreshold = isHoldingRightMouseButton ? 300 : 150;
+  const distanceThreshold = isRightMouseButtonHeld ? 300 : 150;
 
   let doRender = false;
   particles.forEach((particle) => {
@@ -48,10 +48,10 @@ function tickMouseInteraction() {
     const distance = Math.sqrt(xDiff ** 2 + yDiff ** 2);
     if (distance < distanceThreshold) {
       let multiplier =
-        ((isHoldingRightMouseButton ? -0.006 : 16 * mouseSpeed) *
+        ((isRightMouseButtonHeld ? -0.006 : 16 * mouseSpeed) *
           (distanceThreshold - distance)) /
         particle.size ** 2;
-      if (isHoldingRightMouseButton) {
+      if (isRightMouseButtonHeld) {
         const speed = Math.sqrt(
           (xDiff * multiplier) ** 2 + (yDiff * multiplier) ** 2
         );
@@ -277,13 +277,13 @@ function isRightMouseButton(event) {
 
 document.addEventListener('mousedown', (event) => {
   if (isRightMouseButton(event)) {
-    isHoldingRightMouseButton = true;
+    isRightMouseButtonHeld = true;
   }
 });
 
 document.addEventListener('mouseup', (event) => {
   if (isRightMouseButton(event)) {
-    isHoldingRightMouseButton = false;
+    isRightMouseButtonHeld = false;
   }
 });
 
