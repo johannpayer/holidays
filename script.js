@@ -41,6 +41,7 @@ function tickMouseInteraction() {
 
   const distanceThreshold = isHoldingRightMouseButton ? 300 : 150;
 
+  let doRender = false;
   particles.forEach((particle) => {
     const xDiff = particle.x * canvasWidth - mouseX;
     const yDiff = particle.y * canvasHeight - mouseY;
@@ -64,11 +65,11 @@ function tickMouseInteraction() {
       particle.xVel += xDiff * multiplier;
       particle.yVel += yDiff * multiplier;
 
-      return { doRender: true };
+      doRender = true;
     }
   });
 
-  return { doRender: false };
+  return { doRender };
 }
 
 function tickParticleDimensionMovement(
