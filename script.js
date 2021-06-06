@@ -88,7 +88,7 @@ function tickParticleDimensionMovement(
   particle[velocityPropertyName] *= DECELERATION_MULTIPLIER;
 }
 
-function isParticleMovement() {
+function areParticlesMoving() {
   const VELOCITY_THRESHOLD = 0.01;
   return Boolean(
     particles.some((particle) =>
@@ -138,7 +138,7 @@ function tick() {
   }
 
   if (!doRender) {
-    doRender = isParticleMovement();
+    doRender = areParticlesMoving();
   }
 
   if (doRender) {
