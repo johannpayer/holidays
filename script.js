@@ -119,7 +119,10 @@ function updateParticles() {
     });
   }
 
-  lastMousePosition = { x: mouseX, y: mouseY };
+  lastMousePosition = {
+    x: mouseX,
+    y: mouseY,
+  };
   requestAnimationFrame(updateParticles);
 }
 
@@ -262,13 +265,7 @@ document.addEventListener('keydown', (event) => {
   }
 
   const { key } = event;
-  let change;
-  if (key === 'ArrowLeft') {
-    change = -1;
-  } else if (key === 'ArrowRight') {
-    change = 1;
-  }
-
+  const change = key === 'ArrowLeft' ? -1 : key === 'ArrowRight' ? 1 : null;
   if (change) {
     updateNearestHoliday(wrapIndex(holidayIndex + change, holidays.length));
     reset();
