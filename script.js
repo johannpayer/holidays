@@ -132,24 +132,33 @@ function updateText() {
   )}`;
 }
 
-function updateNearestHoliday(index) {
-  const year = new Date().getFullYear();
-  const now = Date.now();
+function getHolidayDate(holiday, year) {
+  return dayjs([
+    year,
+    ...(holiday.dateFunc
+      ? holiday.dateFunc(year)
+      : [holiday.month, holiday.day]),
+  ]);
+}
 
-  function addDateProp(x) {
-    let date = dayjs([year, x.month, x.dateFunc ? x.dateFunc(year) : x.day]);
-    if (date.valueOf() < now) {
-      date = date.set('year', year + 1);
-    }
+function addDateProp(holiday) {
+  const now = new Date();
+  const year = now.getFullYear();
 
-    return { ...x, date };
+  let date = getHolidayDate(holiday, year);
+  if (date < now) {
+    date = getHolidayDate(holiday, year + 1);
   }
 
+  return { ...holiday, date };
+}
+
+function updateNearestHoliday(index) {
   nearestHoliday =
     index === null
       ? holidays
           .map(addDateProp)
-          .sort((x1, x2) => x1.date.valueOf() - x2.date.valueOf())[0]
+          .sort((holiday1, holiday2) => holiday1.date - holiday2.date)[0]
       : addDateProp(holidays[index]);
   holidayIndex =
     index ?? holidays.findIndex((x) => x.name === nearestHoliday.name);

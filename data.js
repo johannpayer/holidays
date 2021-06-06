@@ -1,3 +1,13 @@
+function getDayMonthTuple(year, month, dayOfWeek, weekOfMonth) {
+  const monthFirstDayOfWeek = new Date(year, month - 1, 1).getDay();
+  let day =
+    (weekOfMonth + (monthFirstDayOfWeek <= dayOfWeek ? 0 : 1)) * 7 +
+    dayOfWeek -
+    monthFirstDayOfWeek;
+
+  return [month, day + 1];
+}
+
 const usaColors = ['ad001e', 'f5f5f5', 'ffffff', '2578B2'];
 var holidays = [
   [
@@ -50,36 +60,24 @@ var holidays = [
     "mother's day",
     null,
     null,
-    (year) => {
-      const month = 5;
-      const day = new Date(year, month - 1, 1).getDay();
-      return [month, 8 + (7 - day)];
-    },
+    (year) => getDayMonthTuple(year, 5, 0, 1),
     ['f14472', 'f17db6', 'fed40c', 'b8c500', '85af4b'],
   ],
-  ['the fourth of july', 6, 4, null, usaColors],
   [
     "father's day",
     null,
     null,
-    (year) => {
-      const month = 6;
-      const day = new Date(year, month - 1, 1).getDay();
-      return [month, 15 + (7 - day)];
-    },
+    (year) => getDayMonthTuple(year, 6, 0, 2),
     ['caac3e', '4f4c47', '7ac3bc', 'e6e7a3', 'eb7140'],
   ],
+  ['the fourth of july', 7, 4, null, usaColors],
   ['halloween', 10, 31, null, ['512888', '7349ac', 'eb6123', 'da4200']],
   ['veterans day', 11, 11, null, usaColors],
   [
     'thanksgiving',
     null,
     null,
-    (year) => {
-      const month = 11;
-      const day = new Date(year, month - 1, 30).getDay();
-      return [month, (day >= 4 ? 34 : 27) - day];
-    },
+    (year) => getDayMonthTuple(year, 11, 4, 3),
     ['70362a', 'a17c22', 'debf7e', 'd5673b', 'be5634', 'b5ad15'],
   ],
   [
