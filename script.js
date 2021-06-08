@@ -55,9 +55,9 @@ function tickMouseInteraction() {
         const speed = Math.sqrt(
           (xDiff * multiplier) ** 2 + (yDiff * multiplier) ** 2
         );
-        const minSpeed = 2;
-        if (speed < minSpeed) {
-          multiplier *= minSpeed / speed;
+        const MIN_SPEED = 2;
+        if (speed < MIN_SPEED) {
+          multiplier *= MIN_SPEED / speed;
         }
       }
 
@@ -294,11 +294,11 @@ document.addEventListener('mousemove', (event) => {
 
 document.addEventListener('contextmenu', (event) => event.preventDefault());
 
-document.addEventListener('keydown', (event) => {
-  function wrapIndex(index, length) {
-    return ((index % length) + length) % length;
-  }
+function wrapIndex(index, length) {
+  return ((index % length) + length) % length;
+}
 
+document.addEventListener('keydown', (event) => {
   const { key } = event;
   const change = key === 'ArrowLeft' ? -1 : key === 'ArrowRight' ? 1 : null;
   if (change) {
