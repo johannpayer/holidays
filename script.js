@@ -198,20 +198,20 @@ function updateCanvasSize() {
   context.globalAlpha = 0.76;
 }
 
+function getRandomDirection() {
+  return Math.random() * 2 - 1;
+}
+
+function getRandomCoordinate() {
+  return 0.5 + getRandomDirection() * 0.1;
+}
+
+function getRandomVelocity() {
+  return getRandomDirection() * 3;
+}
+
 function reset() {
   contextColorIndex = null;
-
-  function getRandomDirection() {
-    return Math.random() * 2 - 1;
-  }
-
-  function getRandomCoordinate() {
-    return 0.5 + getRandomDirection() * 0.1;
-  }
-
-  function getRandomVelocity() {
-    return getRandomDirection() * 3;
-  }
 
   particles = [];
   for (let i = 0; i < 3000; i++) {
@@ -231,9 +231,7 @@ function reset() {
   doForceRender = true;
 }
 
-window.addEventListener('load', () => {
-  dayjs.extend(dayjs_plugin_relativeTime);
-
+function parseHolidayIndexFromUri() {
   const seperator = '?holiday=';
   const param = decodeURI(window.location.href)
     .split('&')
@@ -248,7 +246,13 @@ window.addEventListener('load', () => {
     }
   }
 
-  updateNearestHoliday(index);
+  return index;
+}
+
+window.addEventListener('load', () => {
+  dayjs.extend(dayjs_plugin_relativeTime);
+
+  updateNearestHoliday(parseHolidayIndexFromUri());
   updateText();
 
   context = canvas.getContext('2d');
