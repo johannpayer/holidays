@@ -90,12 +90,8 @@ function tickParticleDimensionMovement(
 
 function areParticlesMoving() {
   const VELOCITY_THRESHOLD = 0.01;
-  return Boolean(
-    particles.some((particle) =>
-      ['x', 'y'].some(
-        (x) => Math.abs(particle[`${x}Vel`]) >= VELOCITY_THRESHOLD
-      )
-    )
+  return particles.some((particle) =>
+    ['x', 'y'].some((x) => Math.abs(particle[`${x}Vel`]) >= VELOCITY_THRESHOLD)
   );
 }
 
