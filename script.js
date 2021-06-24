@@ -234,11 +234,12 @@ function parseHolidayIndexFromUri() {
     .find((x) => x.includes(seperator));
   let index = null;
   if (param) {
-    const temp = holidays.findIndex(
+    const paramValue = holidays.findIndex(
       (x) => x.name === param.split(seperator)[1]
     );
-    if (temp !== -1) {
-      index = temp;
+
+    if (paramValue !== -1) {
+      index = paramValue;
     }
   }
 
@@ -307,6 +308,4 @@ document.addEventListener('keydown', (event) => {
   }
 });
 
-window.addEventListener('blur', () => {
-  lastMousePosition = null;
-});
+window.addEventListener('blur', () => (lastMousePosition = null));
