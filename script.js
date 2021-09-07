@@ -3,16 +3,16 @@ let contextColorIndex;
 let canvasWidth;
 let canvasHeight;
 let particles;
-let particleSizeScale;
+let particleRadiusScale;
 
 let nearestHoliday;
 let holidayIndex;
 
-let mouseX;
-let mouseY;
+let cursorX;
+let cursorY;
 let doForceRender = true;
 
-let lastMousePosition;
+let lastCursorPosition;
 let isRightMouseButtonHeld = false;
 
 function isWithinBounds(coordiante) {
@@ -23,19 +23,23 @@ function getBoundValue(num) {
   return Math.max(Math.min(num, 1), 0);
 }
 
+function getCursorSpeed() {
+  const rawSpeed = Math.hypot(
+    (cursorX - lastCursorPosition.x) / canvasWidth,
+    (cursorY - lastCursorPosition.y) / canvasHeight
+  );
+
+  return Math.min(rawSpeed, 0.02);
+}
+
 function tickMouseInteraction() {
-  if (!document.hasFocus() || !lastMousePosition) {
+  if (!document.hasFocus() || !lastCursorPosition) {
     return { doRender: false };
   }
 
-  const mouseSpeed = Math.min(
-    Math.sqrt(
-      ((mouseX - lastMousePosition.x) / canvasWidth) ** 2 +
-        ((mouseY - lastMousePosition.y) / canvasHeight) ** 2
-    ),
-    0.02
-  );
-  if (!isRightMouseButtonHeld && !mouseSpeed) {
+  const cursorSpeed = getCursorSpeed();
+
+  if (!isRightMouseButtonHeld && !cursorSpeed) {
     return { doRender: false };
   }
 
@@ -43,18 +47,17 @@ function tickMouseInteraction() {
 
   let doRender = false;
   particles.forEach((particle) => {
-    const xDiff = particle.x * canvasWidth - mouseX;
-    const yDiff = particle.y * canvasHeight - mouseY;
-    const distance = Math.sqrt(xDiff ** 2 + yDiff ** 2);
+    const xDiff = particle.x * canvasWidth - cursorX;
+    const yDiff = particle.y * canvasHeight - cursorY;
+    const distance = Math.hypot(xDiff, yDiff);
     if (distance < distanceThreshold) {
       let multiplier =
-        ((isRightMouseButtonHeld ? -0.006 : 16 * mouseSpeed) *
+        ((isRightMouseButtonHeld ? -0.006 : 16 * cursorSpeed) *
           (distanceThreshold - distance)) /
-        particle.size ** 2;
+        particle.radius ** 2;
+
       if (isRightMouseButtonHeld) {
-        const speed = Math.sqrt(
-          (xDiff * multiplier) ** 2 + (yDiff * multiplier) ** 2
-        );
+        const speed = Math.hypot(xDiff * multiplier, yDiff * multiplier);
         const MIN_SPEED = 2;
         if (speed < MIN_SPEED) {
           multiplier *= MIN_SPEED / speed;
@@ -96,9 +99,7 @@ function areParticlesMoving() {
 }
 
 function renderParticles() {
-  if (particleSizeScale !== 1) {
-    particleSizeScale = Math.min(particleSizeScale * 1.14, 1);
-  }
+  particleRadiusScale = Math.min(particleRadiusScale * 1.14, 1);
 
   context.clearRect(0, 0, canvasWidth, canvasHeight);
   particles.forEach((particle) => {
@@ -114,10 +115,11 @@ function renderParticles() {
     context.arc(
       particle.x * canvasWidth,
       particle.y * canvasHeight,
-      particle.size * particleSizeScale,
+      particle.radius * particleRadiusScale,
       Math.PI * 2,
       false
     );
+
     context.fill();
   });
 }
@@ -141,10 +143,11 @@ function tick() {
     renderParticles();
   }
 
-  lastMousePosition = {
-    x: mouseX,
-    y: mouseY,
+  lastCursorPosition = {
+    x: cursorX,
+    y: cursorY,
   };
+
   requestAnimationFrame(tick);
 }
 
@@ -216,40 +219,38 @@ function reset() {
       y: getRandomCoordinate(),
       xVel: getRandomVelocity(),
       yVel: getRandomVelocity(),
-      size: (1 / (1 + Math.E ** (getRandomDirection() * 3))) * 6 + 2,
+      radius: (1 / (1 + Math.E ** (getRandomDirection() * 3))) * 6 + 2,
       colorIndex: Math.floor(nearestHoliday.colors.length * Math.random()),
     });
   }
 
-  particleSizeScale = 0.5;
+  particleRadiusScale = 0.5;
 
   updateText();
   doForceRender = true;
 }
 
-function parseHolidayIndexFromUri() {
+function getHolidayIndexFromUri() {
   const seperator = '?holiday=';
   const param = decodeURI(window.location.href)
     .split('&')
     .find((x) => x.includes(seperator));
-  let index = null;
-  if (param) {
-    const paramValue = holidays.findIndex(
-      (x) => x.name === param.split(seperator)[1]
-    );
 
-    if (paramValue !== -1) {
-      index = paramValue;
-    }
+  if (!param) {
+    return null;
   }
 
-  return index;
+  const paramValue = holidays.findIndex(
+    (x) => x.name === param.split(seperator)[1]
+  );
+
+  return paramValue === -1 ? null : paramValue;
 }
 
 window.addEventListener('load', () => {
   dayjs.extend(dayjs_plugin_relativeTime);
 
-  updateNearestHoliday(parseHolidayIndexFromUri());
+  updateNearestHoliday(getHolidayIndexFromUri());
   updateText();
 
   context = canvas.getContext('2d');
@@ -289,8 +290,8 @@ document.addEventListener('mouseup', (event) => {
 });
 
 document.addEventListener('mousemove', (event) => {
-  mouseX = event.clientX;
-  mouseY = event.clientY;
+  cursorX = event.clientX;
+  cursorY = event.clientY;
 });
 
 document.addEventListener('contextmenu', (event) => event.preventDefault());
